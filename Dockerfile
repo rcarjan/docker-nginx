@@ -58,7 +58,7 @@ RUN apt-get update && apt-get install -y \
 
 ## Add PHP repo & install php
 RUN add-apt-repository -y ppa:ondrej/php && \
-    apt update
+    apt-get update
 
 RUN apt-get install -y \
     "php${PHP_VERSION}-fpm" \
