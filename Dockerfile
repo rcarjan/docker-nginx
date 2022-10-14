@@ -9,18 +9,12 @@ ARG WWWUSER=1000
 ARG SERVER_ROOT=/var/www
 ARG PHP_VERSION=8.1
 
-## Set the PHP version environment variable
+## Set the required environment and path variables
+# Set the PHP version environment variable
 ENV PHP_VERSION=${PHP_VERSION}
-
-## Add the needed config files to the image
-# File to start the php-fpm service
-ADD 20-php.sh /docker-entrypoint.d/         
-# PHP configuration files
-ADD php /usr/local/etc/php/conf.d/
-# Main nginx conf file
-ADD nginx/nginx.conf /etc/nginx
-# Nginx sites conf files
-ADD nginx/templates /etc/nginx/templates
+# Update path variables to include node commands
+ENV NODE_PATH="$NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules"
+ENV PATH="${NVM_DIR}/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 
 
 ## Set the working directory to  where the application is located
@@ -65,7 +59,8 @@ RUN apt-get install -y \
     "php${PHP_VERSION}-cli" \
     "php${PHP_VERSION}-curl" \
     "php${PHP_VERSION}-dom" \
-    "php${PHP_VERSION}-mbstring"
+    "php${PHP_VERSION}-mbstring" \
+    "php${PHP_VERSION}-xdebug"
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -83,6 +78,12 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | b
     && nvm use --delete-prefix ${NODE_VERSION} \
     && nvm alias default v${NODE_VERSION}
 
-## Update path variables to include node commands
-ENV NODE_PATH="$NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules"
-ENV PATH="${NVM_DIR}/versions/node/v${NODE_VERSION}/bin/:${PATH}"
+## Add the needed config files to the image
+# File to start the php-fpm service
+ADD 20-php.sh /docker-entrypoint.d/         
+# PHP configuration files
+ADD php "/etc/php/${PHP_VERSION}/fpm/conf.d/"
+# Main nginx conf file
+ADD nginx/nginx.conf /etc/nginx
+# Nginx sites conf files
+ADD nginx/templates /etc/nginx/templates
